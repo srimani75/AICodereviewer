@@ -36,7 +36,7 @@ flowchart TD
 
 ## Setup
 
-- Install .NET 8 SDK
+- Install .NET 10 SDK
 
 Set your Gemini API key:
 
