@@ -61,10 +61,9 @@ Optional flags:
 
 | Workflow | Purpose |
 |----------|---------|
-| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | `dotnet restore` + `dotnet build` on PRs and pushes to `main`/`master`. |
-| [`.github/workflows/bugbot-request.yml`](.github/workflows/bugbot-request.yml) | Posts `bugbot run` on each PR update so [Cursor Bugbot](https://cursor.com/docs/bugbot) can review (requires the Bugbot GitHub app + repo enabled in the [Bugbot dashboard](https://cursor.com/dashboard/bugbot)). |
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | **PRs:** `request-bugbot` posts `bugbot run` immediately (in parallel with CI; it does not wait on restore/lint/build/test). **All runs:** sequential `restore` → `lint` (`dotnet format --verify-no-changes`) → `build` (Release) → `unit-test` (`dotnet test --no-build`, using build artifacts). [Cursor Bugbot](https://cursor.com/docs/bugbot) needs the app + repo enabled in the [Bugbot dashboard](https://cursor.com/dashboard/bugbot). Bugbot uses `continue-on-error` and is not a required check—add required checks only for `lint`, `build`, and `unit-test`. |
 
-If Bugbot is already set to review every PR automatically in the dashboard, you may get **duplicate** reviews—disable the `bugbot-request` workflow or turn off automatic Bugbot for that repo.
+If Bugbot is already set to review every PR automatically in the dashboard, you may get **duplicate** reviews—turn off automatic Bugbot for that repo or remove the `request-bugbot` job from the workflow.
 
 ## Output
 
