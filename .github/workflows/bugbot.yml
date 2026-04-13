@@ -1,0 +1,35 @@
+# Posts `bugbot run` on every PR update targeting main/master so Cursor Bugbot can review.
+# Keep this separate from CI so the CI workflow only shows build steps.
+# Docs: https://cursor.com/docs/bugbot
+#
+# To make Bugbot mandatory for merges: GitHub → Settings → Branches → required status checks →
+# add "Bugbot / review" (workflow name + job id) alongside your CI jobs.
+name: Bugbot
+
+on:
+  pull_request:
+    branches: [main, master]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: bugbot-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post Bugbot comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) throw new Error("No pull_request payload");
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: "bugbot run"
+            });
