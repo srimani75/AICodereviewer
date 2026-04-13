@@ -57,6 +57,15 @@ Optional flags:
 - `--top-files 12`
 - `--max-chars-per-file 16000`
 
+## GitHub Actions
+
+| Workflow | Purpose |
+|----------|---------|
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | `dotnet restore` + `dotnet build` on PRs and pushes to `main`/`master`. |
+| [`.github/workflows/bugbot-request.yml`](.github/workflows/bugbot-request.yml) | Posts `bugbot run` on each PR update so [Cursor Bugbot](https://cursor.com/docs/bugbot) can review (requires the Bugbot GitHub app + repo enabled in the [Bugbot dashboard](https://cursor.com/dashboard/bugbot)). |
+
+If Bugbot is already set to review every PR automatically in the dashboard, you may get **duplicate** reviews—disable the `bugbot-request` workflow or turn off automatic Bugbot for that repo.
+
 ## Output
 
 - Writes `review-report.md` with prioritized findings (critical/high/medium/low).
