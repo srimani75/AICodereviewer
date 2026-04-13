@@ -2,16 +2,11 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-const string DefaultModel = "gemini-1.5-pro";
-//Code..
 var defaultExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 {
     ".py", ".js", ".ts", ".tsx", ".jsx", ".java", ".go", ".rs", ".cs", ".cpp",
     ".c", ".h", ".hpp", ".php", ".rb", ".swift", ".kt", ".scala", ".sql"
 };
-//Args
-var sshkey = "edededededededededededededed"
-//;
 var options = ParseArgs(args);
 var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
 if (string.IsNullOrWhiteSpace(apiKey))
@@ -84,7 +79,7 @@ static List<FileSnippet> ReadCodeFiles(
         }
 
         var parts = file.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        if (parts.Any(part => part.StartsWith('.', StringComparison.Ordinal)))
+        if (parts.Any(part => part.StartsWith(".", StringComparison.Ordinal)))
         {
             continue;
         }
@@ -262,19 +257,19 @@ static async Task<List<string>> PlannerPhaseAsync(
         });
     }
 
-    var prompt = $"""
+    var prompt = $$"""
 You are a code review planning agent.
-Pick the {topN} files that are most likely to contain impactful defects.
+Pick the {{topN}} files that are most likely to contain impactful defects.
 
 Rules:
 - Focus on correctness, security, data loss, race conditions, and API misuse.
 - Return ONLY valid JSON with this schema:
-  {{
+  {
     "selected_files": ["path1", "path2"]
-  }}
+  }
 
 Repository file inventory:
-{inventory.ToJsonString(new JsonSerializerOptions { WriteIndented = true })}
+{{inventory.ToJsonString(new JsonSerializerOptions { WriteIndented = true })}}
 """;
 
     var response = await GeminiGenerateAsync(client, apiKey, model, prompt, 0.1);
@@ -303,29 +298,29 @@ static async Task<JsonObject> ReviewerPhaseAsync(
     string model,
     FileSnippet snippet)
 {
-    var prompt = $"""
+    var prompt = $$"""
 You are a senior static code reviewer.
 Review this single file and report only high-value findings.
 
 Return ONLY valid JSON:
-{{
-  "file": "{snippet.Path}",
+{
+  "file": "{{snippet.Path}}",
   "findings": [
-    {{
+    {
       "severity": "critical|high|medium|low",
       "line": 123,
       "title": "short issue title",
       "impact": "why this matters",
       "evidence": "what in code indicates this",
       "fix": "specific remediation"
-    }}
+    }
   ]
-}}
+}
 
 If no issues are found, return empty findings.
 
 File content with line numbers:
-{snippet.Content}
+{{snippet.Content}}
 """;
 
     var response = await GeminiGenerateAsync(client, apiKey, model, prompt, 0.2);
@@ -341,27 +336,27 @@ static async Task<JsonObject> JudgePhaseAsync(
     string model,
     JsonArray reviews)
 {
-    var prompt = $"""
+    var prompt = $$"""
 You are a code review judge agent.
 Deduplicate and calibrate severity. Keep only credible findings.
 
 Return ONLY valid JSON:
-{{
+{
   "summary": "1-3 sentence summary",
   "final_findings": [
-    {{
+    {
       "severity": "critical|high|medium|low",
       "file": "path",
       "line": 123,
       "title": "issue",
       "impact": "risk",
       "fix": "remediation"
-    }}
+    }
   ]
-}}
+}
 
 Input reviews:
-{reviews.ToJsonString(new JsonSerializerOptions { WriteIndented = true })}
+{{reviews.ToJsonString(new JsonSerializerOptions { WriteIndented = true })}}
 """;
 
     var response = await GeminiGenerateAsync(client, apiKey, model, prompt, 0.1);
@@ -488,9 +483,14 @@ record FileSnippet(string Path, string Content);
 sealed class Options
 {
     public string RepoPath { get; set; } = ".";
-    public string Model { get; set; } = DefaultModel;
+    public string Model { get; set; } = ReviewDefaults.DefaultModel;
     public int MaxFiles { get; set; } = 40;
     public int TopFiles { get; set; } = 12;
     public int MaxCharsPerFile { get; set; } = 16000;
     public string OutputPath { get; set; } = "review-report.md";
+}
+
+file static class ReviewDefaults
+{
+    public const string DefaultModel = "gemini-1.5-pro";
 }
