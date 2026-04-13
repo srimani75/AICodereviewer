@@ -1,5 +1,7 @@
 bin/
 obj/
 .vs/
+.vscode/
+.cursor/
 *.user
 review-report.md
