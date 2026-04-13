@@ -62,11 +62,16 @@ Optional flags:
 | Workflow | Purpose |
 |----------|---------|
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | On PRs and pushes to `main`/`master`: sequential `restore` → `lint` (`dotnet format --verify-no-changes`) → `build` (Release) → `unit-test` (`dotnet test --no-build`, using build artifacts). |
-| [`.github/workflows/bugbot.yml`](.github/workflows/bugbot.yml) | On every PR update to `main`/`master`, posts `bugbot run` so [Cursor Bugbot](https://cursor.com/docs/bugbot) can review (requires the app + repo in the [Bugbot dashboard](https://cursor.com/dashboard/bugbot)). Kept separate from CI so the CI run only shows build jobs. |
 
-**Branch protection:** To require Bugbot for every merge, add required status checks for `lint`, `build`, `unit-test`, and **`Bugbot / review`** (workflow name + job id). Fork PRs may fail the Bugbot job if `GITHUB_TOKEN` cannot comment; adjust rules or permissions if needed.
+**Branch protection:** Require `lint`, `build`, and `unit-test` only. Do not require a Bugbot-related GitHub check for merge—Bugbot’s review runs asynchronously on Cursor’s side and can feel slow if it gates merges.
 
-If Bugbot is already set to review every PR automatically in the dashboard, you may get **duplicate** reviews—disable one of the two triggers.
+### Cursor Bugbot (separate from Actions)
+
+CI above runs on **every** pull request into `main` / `master` (new commits, opened/reopened, and when a draft becomes ready).
+
+For [Cursor Bugbot](https://cursor.com/docs/bugbot), use the [Bugbot dashboard](https://cursor.com/dashboard/bugbot) and keep **automatic reviews on each PR update** enabled. Do **not** turn on **“Run only when mentioned”** (personal/team settings) if you want reviews on every MR without relying on comments.
+
+**About `bugbot run` comments:** Bugbot is designed to also react to `bugbot run` / `cursor review` on a PR. The product does not offer a repository switch to “automatic only, ignore manual triggers.” To avoid extra runs from stray `bugbot run` comments, rely on automatic updates only and skip posting those comments on PRs (team policy). Duplicate reviews can also happen if both dashboard automation and comment triggers fire—prefer one approach.
 
 ## Output
 

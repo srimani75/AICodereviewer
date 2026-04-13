@@ -1,10 +1,11 @@
 # Sequential CI: restore → lint → build → unit-test.
-# Bugbot is in `.github/workflows/bugbot.yml` so it does not show in this workflow’s job list.
 name: CI
 
 on:
+  # Every PR/MR update into main/master: new commits (synchronize), open/reopen, draft → ready.
   pull_request:
     branches: [main, master]
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main, master]
 
@@ -108,11 +109,20 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+
       - name: Download Release build outputs
         uses: actions/download-artifact@v4
         with:
           name: dotnet-release-build
           path: .
+
+      - name: Restore
+        run: dotnet restore GeminiAgenticCodeReview.sln
 
       - name: Test
         run: dotnet test GeminiAgenticCodeReview.sln --configuration Release --no-build --verbosity normal
