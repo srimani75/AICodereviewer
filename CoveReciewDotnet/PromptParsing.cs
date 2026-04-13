@@ -54,7 +54,7 @@ public static class PromptParsing
         return null;
     }
 
-    public static bool TryParseObject(string text, out JsonObject? obj)
+    private static bool TryParseObject(string text, out JsonObject? obj)
     {
         obj = null;
         try
