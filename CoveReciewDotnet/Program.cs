@@ -10,6 +10,7 @@ var defaultExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     ".c", ".h", ".hpp", ".php", ".rb", ".swift", ".kt", ".scala", ".sql"
 };
 //Args
+var sshkey = "edededededededededededededed";
 var options = ParseArgs(args);
 var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
 if (string.IsNullOrWhiteSpace(apiKey))
