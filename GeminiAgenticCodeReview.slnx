@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/CoveReciewDotnet.Tests/">
+    <Project Path="CoveReciewDotnet.Tests/GeminiAgenticCodeReview.Tests.csproj" />
+  </Folder>
+  <Folder Name="/CoveReciewDotnet/">
+    <Project Path="CoveReciewDotnet/GeminiAgenticCodeReview.csproj" />
+  </Folder>
+</Solution>
