@@ -9,7 +9,7 @@ var defaultExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     ".py", ".js", ".ts", ".tsx", ".jsx", ".java", ".go", ".rs", ".cs", ".cpp",
     ".c", ".h", ".hpp", ".php", ".rb", ".swift", ".kt", ".scala", ".sql"
 };
-
+//Args
 var options = ParseArgs(args);
 var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
 if (string.IsNullOrWhiteSpace(apiKey))
