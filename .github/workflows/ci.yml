@@ -1,4 +1,4 @@
-# Build and sanity-check the .NET project on every PR and push to main.
+# Build, lint, and test on every PR and push to main.
 name: CI
 
 on:
@@ -24,7 +24,14 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Restore
-        run: dotnet restore CoveReciewDotnet/GeminiAgenticCodeReview.csproj
+        run: dotnet restore GeminiAgenticCodeReview.sln
+
+      # Enforces `dotnet format` rules; fails if sources need formatting (run `dotnet format` locally to fix).
+      - name: dotnet format
+        run: dotnet format GeminiAgenticCodeReview.sln --verify-no-changes --no-restore --verbosity diagnostic
 
       - name: Build
-        run: dotnet build CoveReciewDotnet/GeminiAgenticCodeReview.csproj --configuration Release --no-restore
+        run: dotnet build GeminiAgenticCodeReview.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test GeminiAgenticCodeReview.sln --configuration Release --no-build --verbosity normal

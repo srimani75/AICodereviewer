@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using GeminiAgenticCodeReview;
 
 var defaultExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 {
@@ -94,7 +95,7 @@ static List<FileSnippet> ReadCodeFiles(
             continue;
         }
 
-        var numbered = NumberLines(content);
+        var numbered = PromptParsing.NumberLines(content);
         if (numbered.Length > maxCharsPerFile)
         {
             numbered = numbered[..maxCharsPerFile];
@@ -109,23 +110,6 @@ static List<FileSnippet> ReadCodeFiles(
     }
 
     return result;
-}
-
-static string NumberLines(string content)
-{
-    var lines = content.Replace("\r\n", "\n").Split('\n');
-    var builder = new StringBuilder();
-    for (var i = 0; i < lines.Length; i++)
-    {
-        builder.Append($"{i + 1,4}: ");
-        builder.Append(lines[i]);
-        if (i < lines.Length - 1)
-        {
-            builder.Append('\n');
-        }
-    }
-
-    return builder.ToString();
 }
 
 static async Task<string> GeminiGenerateAsync(
@@ -194,52 +178,6 @@ static async Task<string> GeminiGenerateAsync(
     return text.ToString();
 }
 
-static JsonObject? ExtractJsonObject(string raw)
-{
-    var text = raw.Trim();
-    if (text.StartsWith("```", StringComparison.Ordinal))
-    {
-        text = text.Trim('`');
-        if (text.StartsWith("json", StringComparison.OrdinalIgnoreCase))
-        {
-            text = text[4..].Trim();
-        }
-    }
-
-    if (TryParseObject(text, out var parsed))
-    {
-        return parsed;
-    }
-
-    var start = text.IndexOf('{');
-    var end = text.LastIndexOf('}');
-    if (start >= 0 && end > start)
-    {
-        var segment = text[start..(end + 1)];
-        if (TryParseObject(segment, out parsed))
-        {
-            return parsed;
-        }
-    }
-
-    return null;
-}
-
-static bool TryParseObject(string text, out JsonObject? obj)
-{
-    obj = null;
-    try
-    {
-        var node = JsonNode.Parse(text);
-        obj = node as JsonObject;
-        return obj is not null;
-    }
-    catch (JsonException)
-    {
-        return false;
-    }
-}
-
 static async Task<List<string>> PlannerPhaseAsync(
     HttpClient client,
     string apiKey,
@@ -273,7 +211,7 @@ Repository file inventory:
 """;
 
     var response = await GeminiGenerateAsync(client, apiKey, model, prompt, 0.1);
-    var parsed = ExtractJsonObject(response);
+    var parsed = PromptParsing.ExtractJsonObject(response);
     var selected = parsed?["selected_files"]?.AsArray();
     if (selected is null)
     {
@@ -324,7 +262,7 @@ File content with line numbers:
 """;
 
     var response = await GeminiGenerateAsync(client, apiKey, model, prompt, 0.2);
-    var parsed = ExtractJsonObject(response) ?? new JsonObject();
+    var parsed = PromptParsing.ExtractJsonObject(response) ?? new JsonObject();
     parsed["file"] ??= snippet.Path;
     parsed["findings"] ??= new JsonArray();
     return parsed;
@@ -360,7 +298,7 @@ Input reviews:
 """;
 
     var response = await GeminiGenerateAsync(client, apiKey, model, prompt, 0.1);
-    var parsed = ExtractJsonObject(response);
+    var parsed = PromptParsing.ExtractJsonObject(response);
     if (parsed is null)
     {
         return new JsonObject
