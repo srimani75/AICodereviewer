@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 const string DefaultModel = "gemini-1.5-pro";
+//Code..
 var defaultExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 {
     ".py", ".js", ".ts", ".tsx", ".jsx", ".java", ".go", ".rs", ".cs", ".cpp",
